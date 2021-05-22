@@ -1,24 +1,35 @@
 #lang racket
 
 (require describe)
-
-(require  web-server/http
-          web-server/servlet-env
-          web-server/servlet
-          web-server/dispatch
-          web-server/templates)
-
-
-(require xml)
+             
 (require racket/runtime-path)
+(require xml)
 
-; (define (file->html f)
-;   (λ (req)
-;     (let  ([file (string-append "html_templates/" f ".html")])
-;      (response/output
-;        (λ (op)
-;           (display   (include-template   (make-template  file)) op))))))
 
+
+(require
+
+  net/url
+  (prefix-in files: web-server/dispatchers/dispatch-files)
+  (prefix-in filter: web-server/dispatchers/dispatch-filter)
+  (prefix-in sequencer: web-server/dispatchers/dispatch-sequencer)
+  web-server/dispatchers/filesystem-map
+  web-server/servlet-dispatch
+  web-server/web-server
+  web-server/http
+  web-server/servlet-env
+  web-server/configuration/responders
+  web-server/servlet
+  web-server/dispatch
+  web-server/templates)
+
+(define url->path/static (make-url->path "static"))
+
+(define static-dispatcher
+  (files:make #:url->path
+              (λ (u)
+                (url->path/static
+                 (struct-copy url u [path (cdr (url-path u))])))))
 
 (define (index  request)
   (response/output
@@ -36,35 +47,23 @@
      (h1 "NOT FOUND")))))
 
 
-
-(define (error-handler request)
- (response/xexpr
-  `(html
-    (body
-     (h1 "ERROR")))))
-
-
-(define-values (dispatch generate-url)
+(define-values (backend  generate-url)
  (dispatch-rules
    [("index") blog]
    [("") blog]
    [else not-found]))
 
 
-(define (server)
-   (serve/servlet
-     (λ (req)
-        (dispatch req))
-     #:listen-ip "127.0.0.1"
-     #:stateless? #t
-     #:launch-browser? #f
-     #:port 9001
-     #:command-line? #t
-     #:servlet-path "/"
-     #:servlets-root "/"
-     #:servlet-regexp   #rx"index|\\s*"))
+(define (run-server)
+    (serve
+      #:listen-ip "127.0.0.1"
+      #:port 3003
+      #:dispatch (sequencer:make
+                  (filter:make #rx"^/static/" static-dispatcher)
+                  (dispatch/servlet backend)
+                  (dispatch/servlet not-found))))
 
 
-#||#
-(define skakata (server))
-;(kill-thread skakata)
+
+(define server (run-server))
+
