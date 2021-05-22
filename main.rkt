@@ -12,12 +12,21 @@
 (require xml)
 (require racket/runtime-path)
 
+; (define (file->html f)
+;   (λ (req)
+;     (let  ([file (string-append "html_templates/" f ".html")])
+;      (response/output
+;        (λ (op)
+;           (display   (include-template   (make-template  file)) op))))))
+
 
 (define (index  request)
-  (response/xexpr
-    `(html
-       (head (title "My Blog"))
-       (body (h1 "Under construction")))))
+  (response/output
+   (λ (op) (display  (include-template "html_templates/index.html") op))))
+
+(define (blog request)
+  (response/output
+   (λ (op) (display  (include-template "html_templates/blog.html") op))))
 
 
 (define (not-found request)
@@ -37,47 +46,25 @@
 
 (define-values (dispatch generate-url)
  (dispatch-rules
-   [("index") index]
-   [("") index]
+   [("index") blog]
+   [("") blog]
    [else not-found]))
 
-; [else (error "There is no procedure to handle the url.")]))
-    
-(define running-server
- (serve/servlet   (λ (req) (dispatch req))
-   #:listen-ip "127.0.0.1"
-   #:stateless? #t
-   #:launch-browser? #f
-   #:port 9001
-   #:command-line? #t
-   #:servlet-path "/"
-   #:servlets-root "/"
-   #:servlet-regexp   #rx"index|\\s*"))
+
+(define (server)
+   (serve/servlet
+     (λ (req)
+        (dispatch req))
+     #:listen-ip "127.0.0.1"
+     #:stateless? #t
+     #:launch-browser? #f
+     #:port 9001
+     #:command-line? #t
+     #:servlet-path "/"
+     #:servlets-root "/"
+     #:servlet-regexp   #rx"index|\\s*"))
 
 
-;(running-server)
-; (define hello (lambda () '()))
-;
-; (set! hello
-;    (lambda (req)
-;     (response/output
-;       (lambda (out)
-;         (displayln "Hello, world fdfds " out)))))
-;
-;
-; (define the-thread '())
-;
-; (define request-handler
-;    (lambda (req)
-;      (set! the-thread (current-thread))
-;      (hello req)))
-
-
-
-; (define SEQ (string->bytes/utf-8 "sequence"))
-
-
-    ; (with-handlers ([exn:break? (lambda (e) (displayln "pipa"))])
-    ;   (sync/enable-break never-evt)))))
-    ;
-
+#||#
+(define skakata (server))
+;(kill-thread skakata)
