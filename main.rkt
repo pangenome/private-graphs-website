@@ -1,14 +1,10 @@
 #lang racket
 
 (require describe)
-             
-(require racket/runtime-path)
-(require xml)
-
-
 
 (require
-
+  racket/runtime-path
+  xml
   net/url
   (prefix-in files: web-server/dispatchers/dispatch-files)
   (prefix-in filter: web-server/dispatchers/dispatch-filter)
@@ -30,6 +26,17 @@
               (λ (u)
                 (url->path/static
                  (struct-copy url u [path (cdr (url-path u))])))))
+
+
+
+(define ext=>mime-type
+  #hash((#""     . #"text/html; charset=utf-8")
+        (#"html" . #"text/html; charset=utf-8")
+        (#"png"  . #"image/png")
+        (#"rkt"  . #"text/x-racket; charset=utf-8")))
+
+
+; (rest '(#""     . '()))
 
 (define (index  request)
   (response/output
@@ -53,17 +60,29 @@
    [("") blog]
    [else not-found]))
 
-
+(define the-thread 0)
 (define (run-server)
-    (serve
-      #:listen-ip "127.0.0.1"
-      #:port 3003
-      #:dispatch (sequencer:make
-                  (filter:make #rx"^/static/" static-dispatcher)
-                  (dispatch/servlet backend)
-                  (dispatch/servlet not-found))))
+  (set! the-thread (current-thread))
+  (serve
+    #:listen-ip "127.0.0.1"
+    #:port 3003
+    #:dispatch (sequencer:make
+                (filter:make #rx"^/static/" static-dispatcher)
+                (dispatch/servlet backend)
+                (dispatch/servlet not-found))))
 
 
+;
+; (define stop
+;  (serve
+;   #:dispatch (dispatch/servlet age)
+;   #:listen-ip "127.0.0.1"
+;   #:port 8000))
 
-(define server (run-server))
-
+; (with-handlers ([exn:break? (lambda (e)
+                              ; (stop)))
+  ; (sync/enable-break never-evt))
+  ;
+; (define server (thread run-server))
+; (kill-thread the-thread)
+; (server)

@@ -88,6 +88,9 @@
                 </section>
 
 
+
+
+
                 <div class="container">
                         <!-- START ARTICLE FEED -->
                         <section class="articles">
@@ -100,7 +103,7 @@
                                                                         <p class="title article-title"></p>
                                                                         <div class="tags has-addons level-item">
                                                                                 <span class="tag is-rounded is-info">@"@"heefoo</span>
-                                                                                <span class="tag is-rounded">May 10, 2018</span>
+                                                                                <span class="tag is-rounded">June 14, 2021</span>
                                                                         </div>
                                                                 </div>
                                                         </div>
@@ -133,10 +136,63 @@
 
                                                 </div>
                                         </div>
-                                </div>
+                                        <!-- START ARTICLE -->
+                                        <div class="card article">
+                                                <div class="card-content">
+                                                        <div class="media">
+                                                                <div class="media-content has-text-centered">
+                                                                        <p class="title article-title"></p>
+                                                                        <div class="tags has-addons level-item">
+                                                                                <span class="tag is-rounded is-info">@"@"heefoo</span>
+                                                                                <span class="tag is-rounded">May 10, 2021</span>
+                                                                        </div>
+                                                                </div>
+                                                        </div>
+
+                                                        <div class="columns">
+                                                                <div class="column">
+                                                                        <div class="content article-body">
+                                                                                <h3>Setting up the tools</h3>
+                                                                                <p> There are three main tool that are absolutely nessecary for our work</p>
+                                                                                <ol>
+                                                                                        <li>A parser for GFA files. This will be <a href="https://github.com/chfi/rs-gfa"> gfa-rust</a>  </li>
+                                                                                        <li>A <a href="https://github.com/jltsiren/gbwt"> GBWT </a> implementation </li>
+                                                                                        <li>A programming language with simplicity and a powerfull ffi. Being a lisp programmer, my chose the <a href="https://racket-lang.org/">racket programming language </a> </li>
+                                                                                </ol>
+
+                                                                        </div>
+
+                                                                        <p>Each tool needs at least a little bit of setup/preperation, before is integrated and is usefull.</p>
+
+                                                                        <section class="section">
+                                                                                <h1 class="title">Exporting a GFA parser</h1>
+                                                                            This is the easiest part of the three. In order to use the rust-gfa package from racket we need to
+                                                                            export it to a standard library, like a dynamic c librarly. This is reflected to a  single function</br>
+                                                                            <code>  consume_gfs_file (pointer_path:  *const c_char )  -> CStringArray </code>
+                                                                            which is then consumed from racket easily:
+                                                                            <br>
+                                                                           First we define  a racket struct to hold the result of the consumed function
+                                                                           <br>
+                                                                           <code> (define-cstruct _CStringArray ([data _pointer] [size _int])) </code>
+                                                                           <br>
+                                                                           Then we use the racket ffi :
+                                                                           <br>
+                                                                           <code>   (define consume-gfs-file ... (_fun _pointer ->  _CStringArray))) </code>
+                                                                           <br>
+                                                                           The resulting function takes a bytestring and returns a _CStringArray.
+                                                                           More details can be found to the wrappers repository.
+                                                                        </section>
+                                                                        <section class="section">
+                                                                                <h1 class="title">The GBWT library</h1>
+                                                                        </section>
+                                                                </div>
+                                                        </div>
+
+                                                </div>
+
                         </section>
-                </div>
-                <script async type="text/javascript" src="../js/bulma.js"></script>
+                                        </div>
+                                        <script async type="text/javascript" src="../js/bulma.js"></script>
                 <script src='https://cdnjs.cloudflare.com/ajax/libs/overlayscrollbars/1.9.1/js/OverlayScrollbars.min.js'></script>
                 <script>
                         document.addEventListener("DOMContentLoaded", function() {
