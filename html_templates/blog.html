@@ -153,21 +153,21 @@
                                                                 <div class="column">
                                                                         <div class="content article-body">
                                                                                 <h3>Setting up the tools</h3>
-                                                                                <p> There are three main tool that are absolutely nessecary for our work</p>
+                                                                                <p> There are three main tool that are absolutely necessary for our work</p>
                                                                                 <ol>
                                                                                         <li>A parser for GFA files. This will be <a href="https://github.com/chfi/rs-gfa"> gfa-rust</a>  </li>
                                                                                         <li>A <a href="https://github.com/jltsiren/gbwt"> GBWT </a> implementation </li>
-                                                                                        <li>A programming language with simplicity and a powerfull ffi. Being a lisp programmer, my chose the <a href="https://racket-lang.org/">racket programming language </a> </li>
+                                                                                        <li>A programming language with simplicity and a powerful ffi. Being a lisp programmer, my chose the <a href="https://racket-lang.org/">racket programming language </a> </li>
                                                                                 </ol>
 
                                                                         </div>
 
-                                                                        <p>Each tool needs at least a little bit of setup/preperation, before is integrated and is usefull.</p>
+                                                                        <p>Each tool needs at least a little bit of setup/preparation, before is integrated and is useful.</p>
 
                                                                         <section class="section">
                                                                                 <h1 class="title">Exporting a GFA parser</h1>
                                                                             This is the easiest part of the three. In order to use the rust-gfa package from racket we need to
-                                                                            export it to a standard library, like a dynamic c librarly. This is reflected to a  single function</br>
+                                                                            export it to a standard library, like a dynamic c library. This is reflected to a  single function</br>
                                                                             <code>  consume_gfs_file (pointer_path:  *const c_char )  -> CStringArray </code>
                                                                             which is then consumed from racket easily:
                                                                             <br>
@@ -182,9 +182,53 @@
                                                                            The resulting function takes a bytestring and returns a _CStringArray.
                                                                            More details can be found to the wrappers repository.
                                                                         </section>
+
                                                                         <section class="section">
+
                                                                                 <h1 class="title">The GBWT library</h1>
-                                                                        </section>
+                                                                                <section class="section">
+                                                                                        <h1 class="title">Installing </h1>
+                                                                                        First we have to compile the GBWT library. It turns out that there are some issues, and the
+                                                                                        Readme might be outdated. First clone the repository recursively in order to force the
+                                                                                        custom version of sdsl to also clone it self. Second it seems that some flags are missing from the
+                                                                                        CMakeLists.txt.
+                                                                                        The location of cmake and sdsl source dirs
+                                                                                        and the fPIC flag,  necessary since we want to generate dynamic libraries
+
+                                                                                        <br>
+                                                                                        I solved this by inserting the following flags:
+                                                                                        <br>
+                                                                                        <code> set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O3 -g -fPIC") </code>
+                                                                                        <br>
+                                                                                        <code> set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -g -fPIC") </code>
+                                                                                        <br>
+                                                                                        <code> set(CMAKE_SOURCE_DIR  ./src) </code>
+                                                                                        <br>
+                                                                                        <code> set(SDSL_SOURCE_DIR ./deps/sdsl-lite) </code>
+                                                                                        <br>
+                                                                                        <code> SOURCE_DIR "${PROJECT_SOURCE_DIR}/deps/sdsl-lite" </code>
+                                                                                        <br>
+                                                                                        Then followed the rest of the instructions and run  ./install.sh
+
+                                                                                </section>
+
+                                                                                <section>
+                                                                                        <h1 class="title">Wrapping </h1>
+                                                                                        This is the most tedious part. There are some tools that are generated when we compile the gbwt
+                                                                                        library, but they do not provide a stdout, they output directly to files, which is inconvenient.
+                                                                                        Since  this is a C++ library, without any exports by design, We have to wrap all the functions to
+                                                                                        C equivalent and create a library which can be accessed by ffi
+                                                                                        This is done on the gbwt-wrapper project. This project also includes  libgbwt.a    libsdsl.a
+                                                                                        precompiled as per the instructions in the previous section. The script build.script should be enough to produce
+                                                                                        a dynamic library libgbwtwrapper.so.
+                                                                                        All GBWT methods have been replaced by  C functions that  accept a pointer to a GBWT object, as defined in
+                                                                                        gbwt library and then  call internally the method.
+                                                                                        Most of the functions have been exported, there is some minor work to be done namely exporting template functions
+                                                                                        The list of expoerted methods is in the projects single header file
+
+                                                                                </section>
+
+                                                                        </section >
                                                                 </div>
                                                         </div>
 

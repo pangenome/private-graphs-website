@@ -83,6 +83,6 @@
                               ; (stop)))
   ; (sync/enable-break never-evt))
   ;
-; (define server (thread run-server))
+(define server (run-server))
 ; (kill-thread the-thread)
 ; (server)
