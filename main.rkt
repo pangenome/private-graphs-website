@@ -13,6 +13,7 @@
   web-server/servlet-dispatch
   web-server/web-server
   web-server/http
+  web-server/http/redirect
   web-server/servlet-env
   web-server/configuration/responders
   web-server/servlet
@@ -36,7 +37,6 @@
         (#"rkt"  . #"text/x-racket; charset=utf-8")))
 
 
-; (rest '(#""     . '()))
 
 (define (index  request)
   (response/output
@@ -57,32 +57,20 @@
 (define-values (backend  generate-url)
  (dispatch-rules
    [("index") blog]
-   [("") blog]
+   [("") (λ  (_) (redirect-to "index"))]
    [else not-found]))
+
 
 (define the-thread 0)
 (define (run-server)
   (set! the-thread (current-thread))
   (serve
     #:listen-ip "127.0.0.1"
-    #:port 3003
+    #:port 3013
     #:dispatch (sequencer:make
                 (filter:make #rx"^/static/" static-dispatcher)
                 (dispatch/servlet backend)
                 (dispatch/servlet not-found))))
 
 
-;
-; (define stop
-;  (serve
-;   #:dispatch (dispatch/servlet age)
-;   #:listen-ip "127.0.0.1"
-;   #:port 8000))
-
-; (with-handlers ([exn:break? (lambda (e)
-                              ; (stop)))
-  ; (sync/enable-break never-evt))
-  ;
 (define server (run-server))
-; (kill-thread the-thread)
-; (server)
